@@ -36,7 +36,7 @@
  * @return a object the class of WXBaseViewController.
  *
  */
-- (instancetype)initWithSourceURL:(NSURL *)sourceURL;
+- (instancetype)initWithSourceURL:(NSURL *)sourceURL :(NSDictionary *)data;
 
 /**
  * @abstract refreshes the weex view in controller.

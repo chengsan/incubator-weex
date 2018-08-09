@@ -32,7 +32,7 @@
 @property (nonatomic, strong) WXSDKInstance *instance;
 @property (nonatomic, strong) UIView *weexView;
 @property (nonatomic, strong) NSURL *sourceURL;
-
+    @property (nonatomic, strong) NSDictionary *data;
 @end
 
 @implementation WXBaseViewController
@@ -43,11 +43,12 @@
     [self _removeObservers];
 }
 
-- (instancetype)initWithSourceURL:(NSURL *)sourceURL
+- (instancetype)initWithSourceURL:(NSURL *)sourceURL :(NSDictionary *)data
 {
     if ((self = [super init])) {
         self.sourceURL = sourceURL;
         self.hidesBottomBarWhenPushed = YES;
+        self.data = data;
         
         [self _addObservers];
     }
@@ -143,7 +144,10 @@
     } else {
         newURL = [NSString stringWithFormat:@"%@?random=%d", sourceURL.absoluteString, arc4random()];
     }
-    [_instance renderWithURL:[NSURL URLWithString:newURL] options:@{@"bundleUrl":sourceURL.absoluteString} data:nil];
+    NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+    [data setObject:sourceURL.absoluteString forKey:@"bundleUrl"];
+    [data setObject:self.data forKey:@"data"];
+    [_instance renderWithURL:[NSURL URLWithString:newURL] options:@{@"data":data} data:nil];
     
     __weak typeof(self) weakSelf = self;
     _instance.onCreate = ^(UIView *view) {
