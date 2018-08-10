@@ -41,7 +41,7 @@ typedef void(^OperationBlock)(void);
 
 - (id)initWithSourceURL:(NSURL *)sourceURL
 {
-    WXBaseViewController *baseViewController = [[WXBaseViewController alloc]initWithSourceURL:sourceURL];
+    WXBaseViewController *baseViewController = [[WXBaseViewController alloc]initWithSourceURL:sourceURL:nil];
     
     return [super initWithRootViewController:baseViewController];
 }

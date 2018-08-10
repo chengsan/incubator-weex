@@ -144,9 +144,16 @@
     } else {
         newURL = [NSString stringWithFormat:@"%@?random=%d", sourceURL.absoluteString, arc4random()];
     }
-    NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *data;
+    if(self.data)
+    {
+        data = [[NSMutableDictionary alloc] initWithDictionary:self.data];
+    }
+    else
+    {
+        data = [[NSMutableDictionary alloc] init];
+    }
     [data setObject:sourceURL.absoluteString forKey:@"bundleUrl"];
-    [data setObject:self.data forKey:@"data"];
     [_instance renderWithURL:[NSURL URLWithString:newURL] options:@{@"data":data} data:nil];
     
     __weak typeof(self) weakSelf = self;
