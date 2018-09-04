@@ -66,10 +66,10 @@
     }
     
     BOOL animated = YES;
-    NSString *obj = [[param objectForKey:@"animated"] lowercaseString];
-    if (obj && [obj isEqualToString:@"false"]) {
-        animated = NO;
-    }
+//    NSString *obj = [[param objectForKey:@"animated"] lowercaseString];
+//    if (obj && [obj isEqualToString:@"false"]) {
+//        animated = NO;
+//    }
     
     WXBaseViewController *vc = [[WXBaseViewController alloc]initWithSourceURL:[NSURL URLWithString:param[@"url"]] :param[@"data"]];
     vc.hidesBottomBarWhenPushed = YES;
@@ -85,7 +85,25 @@
     if (obj) {
         animated = [WXConvert BOOL:obj];
     }
-    
+    long count = container.navigationController.viewControllers.count;
+    if(count >= 2)
+    {
+        UIViewController *vc = container.navigationController.viewControllers[count-2];
+        if([vc isKindOfClass:[WXBaseViewController class]])
+        {
+            WXBaseViewController *tempVC = (WXBaseViewController *)vc;
+            if(tempVC)
+            {
+                [tempVC setPopData:param];
+                
+                //原生拉起WEEX时逆向传值
+                if(tempVC.block)
+                {
+                    tempVC.block(param);
+                }
+            }
+        }
+    }
     [container.navigationController popViewControllerAnimated:animated];
     [self callback:block code:MSG_SUCCESS data:nil];
 }

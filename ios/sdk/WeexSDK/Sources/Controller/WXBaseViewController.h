@@ -18,29 +18,26 @@
  */
 
 #import <UIKit/UIKit.h>
+#import "WXSDKInstance.h"
 
-/**
- * The WXBaseViewController class provides the infrastructure for managing the weex view in your app. It is 
- * responsible for creating a weex instance or rendering the weex view, for observing the lifecycle of the
- * view such as "appear" or "disappear"、"foreground" or "background" etc. You can initialize this controller by
- * special bundle URL.
- */
+typedef void (^LongriseWeexPopBlock)(id result);
 
 @interface WXBaseViewController : UIViewController<UIGestureRecognizerDelegate>
 
-/**
- * @abstract initializes the viewcontroller with bundle url.
- *
- * @param sourceURL The url of bundle rendered to a weex view.
- *
- * @return a object the class of WXBaseViewController.
- *
- */
+@property (nonatomic, retain) WXSDKInstance *instance;
+@property(nonatomic,retain)UIView *noticeView;
+@property(nonatomic,retain)UILabel *noticeLabel;
+@property(nonatomic,copy)LongriseWeexPopBlock block;
+
+
 - (instancetype)initWithSourceURL:(NSURL *)sourceURL :(NSDictionary *)data;
 
-/**
- * @abstract refreshes the weex view in controller.
- */
 - (void)refreshWeex;
+
+#pragma mark WEEX和WEEX的逆向传值设值方法
+-(void)setPopData:(NSDictionary *)dic;
+#pragma mark WEEX拉起UIViewController逆向传值
+-(void)refresh:(NSDictionary *)params;
+
 
 @end
