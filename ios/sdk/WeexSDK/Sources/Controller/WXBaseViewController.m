@@ -27,12 +27,17 @@
 #import "WXPrerenderManager.h"
 #import "WXMonitor.h"
 
-@interface WXBaseViewController ()
+#define LOAD_URL_TYPE_KEY @"loadUrlTypeKey"
 
+@interface WXBaseViewController ()
+{
+    //加载url的方式 1：http远程服务端  2：本地
+    int loadUrlType;
+}
 
 @property (nonatomic, strong) UIView *weexView;
 @property (nonatomic, strong) NSURL *sourceURL;
-    @property (nonatomic, strong) NSDictionary *data;
+@property (nonatomic, strong) NSDictionary *data;
 @end
 
 @implementation WXBaseViewController
@@ -80,6 +85,17 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    //获取加载URL的方式
+    NSString *tempString = [[NSUserDefaults standardUserDefaults] objectForKey:LOAD_URL_TYPE_KEY];
+    if(tempString)
+    {
+        loadUrlType = [tempString intValue];
+    }
+    else
+    {
+        loadUrlType = 1;
+    }
     
     UIView *statusView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [self getStatusBarHeight])];
     statusView.backgroundColor = [self colorWithHexString:@"#4E7FFF" alpha:1.0f];
@@ -162,6 +178,19 @@
         return;
     }
     
+    //加载url的方式 1：http远程服务端  2：本地
+    if(loadUrlType == 2)
+    {
+        //判断该路径下的文件是否存在
+        if(![[NSFileManager defaultManager] fileExistsAtPath:[sourceURL path]])
+        {
+            //如果不存在直接就显示加载失败
+            self.noticeView.hidden = NO;
+            self.noticeLabel.text = @"加载失败";
+            return;
+        }
+    }
+    
     [_instance destroyInstance];
     if([WXPrerenderManager isTaskReady:[self.sourceURL absoluteString]]){
         _instance = [WXPrerenderManager instanceFromUrl:self.sourceURL.absoluteString];
@@ -173,13 +202,23 @@
     _instance.pageName = sourceURL.absoluteString;
     _instance.viewController = self;
     
-    NSString *newURL = nil;
+    NSURL *longriseWeexUrl = nil;
     
-    if ([sourceURL.absoluteString rangeOfString:@"?"].location != NSNotFound) {
-        newURL = [NSString stringWithFormat:@"%@&random=%d", sourceURL.absoluteString, arc4random()];
-    } else {
-        newURL = [NSString stringWithFormat:@"%@?random=%d", sourceURL.absoluteString, arc4random()];
+    if(loadUrlType == 2)
+    {
+        longriseWeexUrl = sourceURL;
     }
+    else
+    {
+        NSString *newURL = nil;
+        if ([sourceURL.absoluteString rangeOfString:@"?"].location != NSNotFound) {
+            newURL = [NSString stringWithFormat:@"%@&random=%d", sourceURL.absoluteString, arc4random()];
+        } else {
+            newURL = [NSString stringWithFormat:@"%@?random=%d", sourceURL.absoluteString, arc4random()];
+        }
+        longriseWeexUrl = [NSURL URLWithString:newURL];
+    }
+    
     NSMutableDictionary *data;
     if(self.data)
     {
@@ -190,7 +229,7 @@
         data = [[NSMutableDictionary alloc] init];
     }
     [data setObject:sourceURL.absoluteString forKey:@"bundleUrl"];
-    [_instance renderWithURL:[NSURL URLWithString:newURL] options:@{@"data":data} data:nil];
+    [_instance renderWithURL:longriseWeexUrl options:@{@"data":data} data:nil];
     
     __weak typeof(self) weakSelf = self;
     _instance.onCreate = ^(UIView *view) {
@@ -201,7 +240,8 @@
     };
     
     _instance.onFailed = ^(NSError *error) {
-        
+        weakSelf.noticeView.hidden = NO;
+        weakSelf.noticeLabel.text = @"加载失败";
     };
     
     _instance.renderFinish = ^(UIView *view) {
