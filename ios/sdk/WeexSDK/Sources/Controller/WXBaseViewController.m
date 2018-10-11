@@ -28,6 +28,7 @@
 #import "WXMonitor.h"
 
 #define LOAD_URL_TYPE_KEY @"loadUrlTypeKey"
+#define SecondInstallAppKey @"SecondInstallAppKey"
 
 @interface WXBaseViewController ()
 {
@@ -106,14 +107,17 @@
     [self.view addSubview:self.noticeView];
     
     //关闭按钮
-    UIButton *closeBtn = [[UIButton alloc] initWithFrame:CGRectMake(self.noticeView.frame.size.width-70, 10, 60, 30)];
-    [closeBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [closeBtn setTitle:@"关闭" forState:UIControlStateNormal];
-    closeBtn.titleLabel.font = [UIFont systemFontOfSize:14];
-    closeBtn.layer.cornerRadius = 5;
-    closeBtn.layer.borderWidth = 1;
-    closeBtn.layer.masksToBounds = YES;
-    closeBtn.layer.borderColor = [UIColor blackColor].CGColor;
+    UIButton *closeBtn = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width-40, 10, 30, 30)];
+    [closeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [closeBtn setBackgroundImage:[UIImage imageNamed:@"weex_close_icon"] forState:UIControlStateNormal];
+    
+//    [closeBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [closeBtn setTitle:@"关闭" forState:UIControlStateNormal];
+//    closeBtn.titleLabel.font = [UIFont systemFontOfSize:14];
+//    closeBtn.layer.cornerRadius = 5;
+//    closeBtn.layer.borderWidth = 1;
+//    closeBtn.layer.masksToBounds = YES;
+//    closeBtn.layer.borderColor = [UIColor blackColor].CGColor;
     [closeBtn addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
     [self.noticeView addSubview:closeBtn];
     
@@ -174,6 +178,11 @@
 
 - (void)_renderWithURL:(NSURL *)sourceURL
 {
+    BOOL b = [[NSUserDefaults standardUserDefaults] boolForKey:SecondInstallAppKey];
+    if(!b)
+    {
+        return;
+    }
     if (!sourceURL) {
         return;
     }
@@ -181,14 +190,20 @@
     //加载url的方式 1：http远程服务端  2：本地
     if(loadUrlType == 2)
     {
+        //self.weexUrl = [NSString stringWithFormat:@"%@/dist/car/home/home.js",[WeexValue getWeexFileDir]];
+        NSArray * paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+        NSString *paths1 = [[paths objectAtIndex:0] stringByAppendingFormat:@"/Caches"];
+        NSString *localPath = [NSString stringWithFormat:@"%@/Weex/%@",paths1,[sourceURL path]];
         //判断该路径下的文件是否存在
-        if(![[NSFileManager defaultManager] fileExistsAtPath:[sourceURL path]])
+        if(![[NSFileManager defaultManager] fileExistsAtPath:localPath])
         {
             //如果不存在直接就显示加载失败
             self.noticeView.hidden = NO;
             self.noticeLabel.text = @"加载失败";
             return;
         }
+        
+        sourceURL = [NSURL fileURLWithPath:localPath];
     }
     
     [_instance destroyInstance];
