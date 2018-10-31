@@ -134,6 +134,8 @@
         [self.navigationController setNavigationBarHidden:YES animated:YES];
     }
 }
+
+
 -(void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
@@ -171,18 +173,8 @@
 }
 
 
-- (void)addEdgePop
-{
-    self.navigationController.interactivePopGestureRecognizer.delegate = self;
-}
-
 - (void)_renderWithURL:(NSURL *)sourceURL
 {
-    BOOL b = [[NSUserDefaults standardUserDefaults] boolForKey:SecondInstallAppKey];
-    if(!b)
-    {
-        return;
-    }
     if (!sourceURL) {
         return;
     }
@@ -190,6 +182,12 @@
     //加载url的方式 1：http远程服务端  2：本地
     if(loadUrlType == 2)
     {
+        BOOL b = [[NSUserDefaults standardUserDefaults] boolForKey:SecondInstallAppKey];
+        if(!b)
+        {
+            return;
+        }
+        
         //self.weexUrl = [NSString stringWithFormat:@"%@/dist/car/home/home.js",[WeexValue getWeexFileDir]];
         NSArray * paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
         NSString *paths1 = [[paths objectAtIndex:0] stringByAppendingFormat:@"/Caches"];

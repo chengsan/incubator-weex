@@ -22,7 +22,7 @@
 
 typedef void (^LongriseWeexPopBlock)(id result);
 
-@interface WXBaseViewController : UIViewController<UIGestureRecognizerDelegate>
+@interface WXBaseViewController : UIViewController
 
 @property (nonatomic, retain) WXSDKInstance *instance;
 @property(nonatomic,retain)UIView *noticeView;
