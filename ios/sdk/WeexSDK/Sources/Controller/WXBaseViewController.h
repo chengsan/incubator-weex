@@ -28,6 +28,8 @@ typedef void (^LongriseWeexPopBlock)(id result);
 @property(nonatomic,retain)UIView *noticeView;
 @property(nonatomic,retain)UILabel *noticeLabel;
 @property(nonatomic,copy)LongriseWeexPopBlock block;
+@property(nonatomic,retain)UIButton *refreshBtn;
+@property(nonatomic,assign)BOOL isDebugMode;//是否调试模式
 
 
 - (instancetype)initWithSourceURL:(NSURL *)sourceURL :(NSDictionary *)data;

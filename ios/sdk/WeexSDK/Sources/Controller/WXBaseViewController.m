@@ -246,10 +246,36 @@
     
     __weak typeof(self) weakSelf = self;
     _instance.onCreate = ^(UIView *view) {
+        if(weakSelf.refreshBtn)
+        {
+            [weakSelf.refreshBtn removeFromSuperview];
+        }
         weakSelf.noticeView.hidden = YES;
-        [weakSelf.weexView removeFromSuperview];
+        if(weakSelf.weexView)
+        {
+            [weakSelf.weexView removeFromSuperview];
+        }
         weakSelf.weexView = view;
         [weakSelf.view addSubview:weakSelf.weexView];
+        
+        if(weakSelf.isDebugMode)
+        {
+            weakSelf.refreshBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+            int btnWidth = 50;//按钮宽
+            int margin = 10;//按钮外边距
+            weakSelf.refreshBtn.frame = CGRectMake(weakSelf.view.bounds.size.width-btnWidth-margin, weakSelf.view.bounds.size.height-[weakSelf getStatusBarHeight]-btnWidth-margin, btnWidth, btnWidth);
+            weakSelf.refreshBtn.backgroundColor = [UIColor blueColor];
+            [weakSelf.refreshBtn setTitle:@"刷新" forState:UIControlStateNormal];
+            [weakSelf.refreshBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            weakSelf.refreshBtn.titleLabel.font = [UIFont systemFontOfSize:12];
+            //设置圆角
+            weakSelf.refreshBtn.layer.cornerRadius = btnWidth/2;
+            
+            //设置监听
+            [weakSelf.refreshBtn addTarget:weakSelf action:@selector(refreshWeex) forControlEvents:UIControlEventTouchUpInside];
+            
+            [weakSelf.view addSubview:weakSelf.refreshBtn];
+        }
     };
     
     _instance.onFailed = ^(NSError *error) {
