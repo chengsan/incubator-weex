@@ -257,7 +257,7 @@
         }
         weakSelf.weexView = view;
         [weakSelf.view addSubview:weakSelf.weexView];
-        
+        weakSelf.isDebugMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"isDebugKey"];
         if(weakSelf.isDebugMode)
         {
             weakSelf.refreshBtn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -281,6 +281,11 @@
     _instance.onFailed = ^(NSError *error) {
         weakSelf.noticeView.hidden = NO;
         weakSelf.noticeLabel.text = @"加载失败";
+        
+        if(weakSelf.refreshBtn)
+        {
+            [weakSelf.refreshBtn removeFromSuperview];
+        }
     };
     
     _instance.renderFinish = ^(UIView *view) {
