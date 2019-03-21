@@ -22,16 +22,18 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 
+import com.alibaba.android.bindingx.plugin.weex.BindingX;
 import com.alibaba.weex.commons.adapter.DefaultWebSocketAdapterFactory;
 import com.alibaba.weex.commons.adapter.ImageAdapter;
 import com.alibaba.weex.commons.adapter.JSExceptionAdapter;
+import com.alibaba.weex.commons.adapter.PicassoBasedDrawableLoader;
+import com.alibaba.weex.extend.adapter.ApmGenerator;
 import com.alibaba.weex.extend.adapter.DefaultAccessibilityRoleAdapter;
 import com.alibaba.weex.extend.adapter.InterceptWXHttpAdapter;
-import com.alibaba.weex.extend.component.RichText;
+import com.alibaba.weex.extend.adapter.WXAnalyzerDemoListener;
 import com.alibaba.weex.extend.component.WXComponentSyncTest;
 import com.alibaba.weex.extend.component.WXMask;
 import com.alibaba.weex.extend.component.WXParallax;
-import com.alibaba.weex.extend.component.dom.WXMaskDomObject;
 import com.alibaba.weex.extend.module.GeolocationModule;
 import com.alibaba.weex.extend.module.MyModule;
 import com.alibaba.weex.extend.module.RenderModule;
@@ -46,6 +48,7 @@ import com.taobao.weex.WXSDKEngine;
 import com.taobao.weex.WXSDKManager;
 import com.taobao.weex.bridge.WXBridgeManager;
 import com.taobao.weex.common.WXException;
+import com.taobao.weex.performance.WXAnalyzerDataTransfer;
 
 public class WXApplication extends Application {
 
@@ -72,11 +75,15 @@ public class WXApplication extends Application {
                            new InitConfig.Builder()
                                //.setImgAdapter(new FrescoImageAdapter())// use fresco adapter
                                .setImgAdapter(new ImageAdapter())
+                                   .setDrawableLoader(new PicassoBasedDrawableLoader(getApplicationContext()))
                                .setWebSocketAdapterFactory(new DefaultWebSocketAdapterFactory())
                                .setJSExceptionAdapter(new JSExceptionAdapter())
                                .setHttpAdapter(new InterceptWXHttpAdapter())
+                               .setApmGenerater(new ApmGenerator())
                                .build()
                           );
+    WXSDKManager.getInstance().addWXAnalyzer(new WXAnalyzerDemoListener());
+    WXAnalyzerDataTransfer.isOpenPerformance = false;
 
     WXSDKManager.getInstance().setAccessibilityRoleAdapter(new DefaultAccessibilityRoleAdapter());
 
@@ -85,14 +92,11 @@ public class WXApplication extends Application {
       WXSDKEngine.registerComponent("synccomponent", WXComponentSyncTest.class);
       WXSDKEngine.registerComponent(WXParallax.PARALLAX, WXParallax.class);
 
-      WXSDKEngine.registerComponent("richtext", RichText.class);
       WXSDKEngine.registerModule("render", RenderModule.class);
       WXSDKEngine.registerModule("event", WXEventModule.class);
       WXSDKEngine.registerModule("syncTest", SyncTestModule.class);
 
       WXSDKEngine.registerComponent("mask",WXMask.class);
-      WXSDKEngine.registerDomObject("mask", WXMaskDomObject.class);
-
       WXSDKEngine.registerModule("myModule", MyModule.class);
       WXSDKEngine.registerModule("geolocation", GeolocationModule.class);
 
@@ -100,6 +104,7 @@ public class WXApplication extends Application {
 
       WXSDKEngine.registerModule("wsonTest", WXWsonTestModule.class);
 
+      BindingX.register();
 
       /**
        * override default image tag

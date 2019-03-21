@@ -2,7 +2,7 @@
 
 A framework for building Mobile cross-platform UI.
 
-[![CircleCI](https://circleci.com/gh/alibaba/weex/tree/dev.svg?style=svg&circle-token=b83b047a3a01f6ec26458a455530a5ddc261925f)](https://circleci.com/gh/alibaba/weex/tree/dev)
+[![Build Status](https://travis-ci.org/apache/incubator-weex.svg?branch=master)](https://travis-ci.org/apache/incubator-weex/)
 
 | platform | status |
 | -------- | ------ |
@@ -18,8 +18,8 @@ Please ***INSTALL [Git for Windows](https://git-scm.com/download/win)*** and run
 
 ## Meet Weex
 
-* Install [Weex Playground App](https://weex.apache.org/playground.html) to see examples we already written.
-* If you want to write a demo, install [weex-toolkit](https://www.npmjs.com/package/weex-toolkit) in [Node.js](http://nodejs.org/) 4.0+ and
+* Install [Weex Playground App](https://weex.apache.org/tools/playground.html) to see examples we already written.
+* If you want to write a demo, install [weex-toolkit](https://www.npmjs.com/package/weex-toolkit) in [Node.js](http://nodejs.org/) 8.0+ and
 * Run `weex init` to generate & start a simple project in an empty folder.
 * Follow the instructions in the project README.
 * Enjoy it.
@@ -32,11 +32,13 @@ Please ***INSTALL [Git for Windows](https://git-scm.com/download/win)*** and run
 ### Android
 
 * Prerequisites
-  * Install [Node.js](http://nodejs.org/) 4.0+
+  * Install [Node.js](http://nodejs.org/) 8.0+
   * Under project root
     * `npm install`, install project
     * `./start`
     * Install [Android Environment](http://developer.android.com/training/basics/firstapp/index.html)
+    * Install [NDK](https://developer.android.com/ndk/) r16
+    * Install [Cmake](https://cmake.org/download/) 3.9.0+
 * Run playground, In Android Studio
     * Open `android/playground`
     * In `app/java/com.alibaba.weex/IndexActivity`, modify `CURRENT_IP` to your local IP
@@ -50,7 +52,7 @@ On Android Platform , Weex code is executed in [weex_v8core](https://github.com/
 ### iOS
 * run playground
   * Prerequisites
-    * Install [Node.js](http://nodejs.org/) 4.0+
+    * Install [Node.js](http://nodejs.org/) 8.0+
       * Under project root
           * `npm install`, install project
           * `./start`
@@ -66,15 +68,15 @@ On Android Platform , Weex code is executed in [weex_v8core](https://github.com/
 * integrate to your application
 
   - **[CocoaPods](https://cocoapods.org)**
-  
+
      Add the following line to your Podfile:
    ```
      pod 'WeexSDK'
    ```
     run `pod install`
-    
+
   - **[Carthage](https://github.com/carthage/carthage)**
-  
+
     Add the following line to your Cartfile:
    ```
      github "apache/incubator-weex"
@@ -95,14 +97,14 @@ Weex team have developed a [DevTool](https://github.com/weexteam/weex-devtool) t
 
 See more stuff on [this wiki page](https://github.com/alibaba/weex/wiki/Weex-Community)
 
-### Weex Community
-
+## Weex Community
+* [Mailing List](https://weex-project.io/contributing.html#join-in-discussions) Weex Mailing List, where most discussion happens.
 * [StackOverflow](http://stackoverflow.com/questions/tagged/weex): Ask questions about Weex.
 * [SegmentFault (cn)](https://segmentfault.com/t/weex): 中文交流与讨论
 * [FAQ](https://weex.apache.org/faq.html)
 * [Articles (cn)](https://github.com/weexteam/article/issues): Weex 相关文章集合
 * [Telegram Russian Community Group](https://telegram.me/weex_ru)
 
-## Contributing
+### Contributing
 
 See [Weex Contributing Guide](./CONTRIBUTING.md) for more information.

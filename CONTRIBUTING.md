@@ -1,98 +1,54 @@
-# How to Contribute
+# Join Weex community
 
-Welcome to create [pull requests](https://github.com/apache/incubator-weex/compare) or join in our [mailing list](http://mail-archives.apache.org/mod_mbox/incubator-weex-dev/) for bugfix, doc, example, suggestion and anything.
+> Community over code
 
-## Join in Weex Mailing List
+Weex project belongs to Apache Software Foundation and Weex community respects and fulfills the Apache rule, which is **Community over code** .
 
-In Weex community all discussion will happen on mailing list.
+## Code of Conduct
 
-Just send an email to `dev-subscribe@weex.incubator.apache.org` and follow the instructions to subscribe Weex dev mailing list. And then you will receive all discussions and community messages by your personal email. In the same time you can freely send your own emails to join in us.
+To make an open and friendly community, Weex community adopt [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct) as the code of conduct.
 
-At the same time you can see the archives of all the mails through the web: [http://mail-archives.apache.org/mod_mbox/incubator-weex-dev/](http://mail-archives.apache.org/mod_mbox/incubator-weex-dev/)
+## Mailing List
+> If it didn't happen on a mailing list, it didn't happen.
 
-*If you won't follow the mailing list any more. There is another way to unsubscribe it: send an email to `dev-unsubscribe@weex.incubator.apache.org` and follow the instructions.*
+**Subscribing mailing list of weex is necessary to join weex community.**
 
-Besides Weex dev mailing list, we also have some other mailing lists for you. You can check them out here: [http://mail-archives.apache.org/mod_mbox/#weex.incubator](http://mail-archives.apache.org/mod_mbox/#weex.incubator)
+In Weex community, feature requests, discussions and decisions happen on the mailing list, which is open to the whole world.
 
-## Branch Management
+`dev@weex.incubator.apache.org` is the mailing list's address. Developers can subscribe this list to know what is happening in weex community and express his/her idea. Send an email to [subscription](mailto:dev-subscribe@weex.incubator.apache.org?subject=%28send%20this%20email%20to%20subscribe%29) then you will receive a confirmation email. Once you reply the confirmation email, the subscription is done.
 
-```
-release
- ↑
-{version}
- ↑
-master         <--- PR(feature/hotfix/typo)
-```
+If you want to unsubscribe, send an email to [Canceling subscription](mailto:dev-unsubscribe@weex.incubator.apache.org?subject=%28send%20this%20email%20to%20unsubscribe%29)
 
-0. `master` branch
-    0. `master` is the stable developing branch.
-    0. ***It's RECOMMENDED to commit hotfix (like typo) or feature PR to `master `***.
-0. `{version}` branch
-    0. `{version}` is used for every version which we consider for stable publish.
-    0. e.g. `v0.16`
-0. `release` branch
-    0. `release` is the latest release branch,we will make tag and publish version on this branch.
+Read [Apache mailing list](https://apache.org/foundation/mailinglists.html) to have a deeper view of mailing list.
 
-### Branch Name For PR
 
-```
-{module}-{action}-{shortName}
-```
+## Ask or Answer Questions
+* You ask questions on [stackoverflow.com](http://stackoverflow.com/questions/tagged/weex) for basic use problems and concepts.
+* You can report a bug through Github Issue as mention in [bug report](https://weex.io/guide/contribute/bug-report-guidelines.html).
 
-* `{module}`, see [commit log module](#commit-log)
-* `{action}`
-    * `feature`: checkout from `{module}` and merge to `{module}` later. If `{module}` not exists, merge to `dev`
-    * `bugfix`: like `feature`, for bugfix only
-    * `hotfix`: checkout from `master` or release `tag`, merge to `master` and `{module}` later. If `{module}` not exists, merge to `dev`
+**Tip**:
+> Formally speaking, StackOverflow is not part of Weex community though developers around the world continually contribute to it. If your question on StackOverflow doesn't get response within 96 hours, you can fire a [Github Issue](https://github.com/apache/incubator-weex/issues) with link to your question on StackOverflow.
 
-for example:
+**Warning**:
+> Only the following types of issues are valid Github issues, for other problem, ask it in the mailing list.
+> * Bug
+> * StackOverflow questions, which doesn't get response over 96 hours.
 
-* `android-bugfix-memory`
-* `jsfm-feature-communication`
-* `android-hotfix-compute-layout`
 
-## Commit Log
+## Contribute Code or document
+In Weex community, **Documentation is as important as code**, and Weex community respects all the contribution of documentation or code.
 
-```
-{action} [{module}] {description}
-```
+**Tip**:
+> Weex adopts [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/) as its open source license. Make sure your contribution obeys the requirement of Apache License 2.0.
 
-* `{action}`
-    * `+` add
-    * `*` update or bugfix
-    * `-` remove
-* `{module}`
-    * Including: android, ios, jsfm, html5, component, doc, website, example, test, all 
-* `{description}`
-    * Just make it as clear and simple as possible.
+### Contribute documentation
+Documentation with good quality is a great help to developers. If there is a powerful API that is not easy to use, it becomes useless. So, we welcome any contributions to help Weex's documents become precise and easy to read.
 
-for example:
+You can contribute to a document through the following ways:
+* Click **Edit this page** on the bottom of website, and you will be navigated to a new Github PR.
 
-* `+ [android] close #123, add refreshing for WebView`
-* `* [doc] fix #123, update video auto-play property`
-* `- [example] remove abc`
+**Tip**
+> PR about documentation should be fired based on **draft** branch currently, which will be merged master branch automatically later when all things are settled.
 
-## Pull Request
-
-You can [create pull requests](https://github.com/apache/incubator-weex/compare) in GitHub.
-
-1. First we suggest you have some discussion with the community (commonly in our mailing list) before you code.
-2. Fork repo from [https://github.com/apache/incubator-weex/](https://github.com/apache/incubator-weex/)
-3. Finish the job you want to do.
-4. Create a pull request.
-
-## Code Style Guide
-
-### Objective-C
-
-* Tabs for indentation(not spaces)
-* `*` operator goes with the variable name (e.g. Type *variable;)
-* Function definitions: place each brace on its own line.
-* Other braces: place the open brace on the line preceding the code block; place the close brace on its own line.
-* Use `#pragma marks` to categorize methods into functional groupings and protocol implementations
-* Follow other guidelines on [GitHub Objective-C Style Guide](https://github.com/github/objective-c-style-guide)
-
-### Java & Android 
-
-* Use [Google Java Style](https://google.github.io/styleguide/javaguide.html) as basic guidelines of java code.
-* Follow [AOSP Code Style](https://source.android.com/source/code-style.html) for rest of android related code style.
+### Contribute code
+You can fix a bug or develop a new feature when contributing code, ref [Contribution of Code](https://weex.io/guide/contribute/contribute-code.html) to see more detail.

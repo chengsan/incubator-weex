@@ -20,9 +20,7 @@
 #import "AppDelegate.h"
 #import "WXDemoViewController.h"
 #import "UIViewController+WXDemoNaviBar.h"
-#import "WXStreamModule.h"
 #import "WXEventModule.h"
-#import "WXNavigationDefaultImpl.h"
 #import "WXImgLoaderDefaultImpl.h"
 #import "DemoDefine.h"
 #import "WXScannerVC.h"
@@ -36,6 +34,14 @@
 #import "WXConfigCenterProtocol.h"
 #import "WXConfigCenterDefaultImpl.h"
 #import "WXNavigationHandlerImpl.h"
+//#import "WXAnalyzerCenter.h"
+#import "WXApmGeneratorImpl.h"
+#import "WXWebSocketDefaultImpl.h"
+#import <WeexPluginLoader/WeexPluginLoader.h>
+
+#ifdef DEBUG
+#import "DebugAnalyzer.h"
+#endif
 
 @interface AppDelegate ()
 @end
@@ -117,6 +123,8 @@
     [WXSDKEngine registerHandler:[WXEventModule new] withProtocol:@protocol(WXEventModuleProtocol)];
     [WXSDKEngine registerHandler:[WXConfigCenterDefaultImpl new] withProtocol:@protocol(WXConfigCenterProtocol)];
     [WXSDKEngine registerHandler:[WXNavigationHandlerImpl new] withProtocol:@protocol(WXNavigationProtocol)];
+    [WXSDKEngine registerHandler:[WXApmGeneratorImpl new] withProtocol:@protocol(WXApmGeneratorProtocol)];
+    [WXSDKEngine registerHandler:[WXWebSocketDefaultImpl new] withProtocol:@protocol(WXWebSocketHandler)];
     
     [WXSDKEngine registerComponent:@"select" withClass:NSClassFromString(@"WXSelectComponent")];
     [WXSDKEngine registerModule:@"event" withClass:[WXEventModule class]];
@@ -124,6 +132,10 @@
     [WXSDKEngine registerModule:@"titleBar" withClass:NSClassFromString(@"WXTitleBarModule")];
     [WXSDKEngine registerExtendCallNative:@"test" withClass:NSClassFromString(@"WXExtendCallNativeTest")];
     [WXSDKEngine registerModule:@"ext" withClass:[WXExtModule class]];
+    [WPRegister registerPlugins];
+#ifdef DEBUG
+    [WXAnalyzerCenter addWxAnalyzer:[DebugAnalyzer new]];
+#endif
     
 #if !(TARGET_IPHONE_SIMULATOR)
     [self checkUpdate];

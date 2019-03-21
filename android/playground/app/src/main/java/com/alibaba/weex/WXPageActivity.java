@@ -44,10 +44,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.weex.commons.WXAnalyzerDelegate;
-import com.alibaba.weex.commons.util.ScreenUtil;
 import com.alibaba.weex.constants.Constants;
 import com.alibaba.weex.https.HotRefreshManager;
 import com.alibaba.weex.https.WXHttpManager;
@@ -55,27 +53,23 @@ import com.alibaba.weex.https.WXHttpTask;
 import com.alibaba.weex.https.WXRequestListener;
 import com.taobao.weex.IWXRenderListener;
 import com.taobao.weex.RenderContainer;
-import com.taobao.weex.WXEnvironment;
 import com.taobao.weex.WXSDKEngine;
 import com.taobao.weex.WXSDKInstance;
 import com.taobao.weex.appfram.navigator.IActivityNavBarSetter;
-import com.taobao.weex.bridge.WXBridgeManager;
-import com.taobao.weex.common.IWXDebugProxy;
 import com.taobao.weex.common.WXRenderStrategy;
-import com.taobao.weex.dom.ImmutableDomObject;
 import com.taobao.weex.ui.component.NestedContainer;
 import com.taobao.weex.ui.component.WXComponent;
 import com.taobao.weex.ui.component.WXVContainer;
 import com.taobao.weex.utils.WXFileUtils;
-import com.taobao.weex.utils.WXJsonUtils;
 import com.taobao.weex.utils.WXLogUtils;
-
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class WXPageActivity extends WXBaseActivity implements IWXRenderListener, Handler.Callback, WXSDKInstance.NestedInstanceInterceptor {
@@ -188,7 +182,7 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
         ctx.getWindow().getDecorView().getWindowVisibleDisplayFrame(outRect);
         mConfigMap.put("bundleUrl", mUri.toString());
         String path = "file".equals(mUri.getScheme()) ? assembleFilePath(mUri) : mUri.toString();
-        mInstance.render(TAG, WXFileUtils.loadAsset(path, WXPageActivity.this),
+        mInstance.render(path, WXFileUtils.loadAsset(path, WXPageActivity.this),
             mConfigMap, null,
             WXRenderStrategy.APPEND_ASYNC);
       }
@@ -232,14 +226,13 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
     }
 
     RenderContainer renderContainer = new RenderContainer(this);
-    mContainer.addView(renderContainer);
-
     mInstance = new WXSDKInstance(this);
     mInstance.setRenderContainer(renderContainer);
     mInstance.registerRenderListener(this);
     mInstance.setNestedInstanceInterceptor(this);
     mInstance.setBundleUrl(url);
     mInstance.setTrackComponent(true);
+    mContainer.addView(renderContainer);
 
     WXHttpTask httpTask = new WXHttpTask();
     httpTask.url = url;
@@ -249,8 +242,16 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
       public void onSuccess(WXHttpTask task) {
         Log.i(TAG, "into--[http:onSuccess] url:" + url);
         try {
+          Uri uri = Uri.parse(url);
           mConfigMap.put("bundleUrl", url);
-          mInstance.render(TAG, new String(task.response.data, "utf-8"), mConfigMap, null, ScreenUtil.getDisplayWidth(WXPageActivity.this), ScreenUtil.getDisplayHeight(WXPageActivity.this), WXRenderStrategy.APPEND_ASYNC);
+          if(TextUtils.equals(uri.getQueryParameter("__eagle"), Boolean.TRUE.toString())){
+            mInstance.render(TAG, task.response.data, mConfigMap, null);
+          }
+          else if (TextUtils.equals(uri.getQueryParameter("__data_render"), Boolean.TRUE.toString())){
+            mInstance.render(TAG, new String(task.response.data, "UTF-8"), mConfigMap, null, WXRenderStrategy.DATA_RENDER);
+          } else {
+            mInstance.render(TAG, new String(task.response.data, "utf-8"), mConfigMap, null, WXRenderStrategy.APPEND_ASYNC);
+          }
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }
@@ -272,11 +273,25 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
    */
   private void startHotRefresh() {
     try {
-      String host = new URL(mUri.toString()).getHost();
-      String wsUrl = "ws://" + host + ":8082";
+      URL url = new URL(mUri.toString());
+      String host = url.getHost();
+      String query = url.getQuery();
+      String wsport = TextUtils.isEmpty(query)? "8082" : getUrlParam("wsport", query);
+      String wsUrl = "ws://" + host + ":" + (wsport.equals("") ? "8082" : wsport) ;
       mWXHandler.obtainMessage(Constants.HOT_REFRESH_CONNECT, 0, 0, wsUrl).sendToTarget();
     } catch (MalformedURLException e) {
       e.printStackTrace();
+    }
+  }
+
+  private String getUrlParam(String key, String queryString) {
+    String regex = "[?|&]?" + key + "=([^&]+)";
+    Pattern p = Pattern.compile(regex);
+    Matcher matcher = p.matcher(queryString);
+    if (matcher.find()) {
+      return matcher.group(1);
+    } else {
+      return "";
     }
   }
 
@@ -306,12 +321,10 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
     if(comp == null){
       return;
     }
-    ImmutableDomObject dom;
     String id;
     View view;
     if((view = comp.getHostView())!=null &&
-        (dom = comp.getDomObject()) != null &&
-        (id = (String) dom.getAttrs().get("testId"))!=null &&
+        (id = (String) comp.getAttrs().get("testId"))!=null &&
         !map.containsKey(id)){
       Pair<String,Integer> pair = Utility.nextID();
       view.setId(pair.second);
@@ -521,8 +534,8 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
   private void registerBroadcastReceiver() {
     mReceiver = new RefreshBroadcastReceiver();
     IntentFilter filter = new IntentFilter();
-    filter.addAction(IWXDebugProxy.ACTION_DEBUG_INSTANCE_REFRESH);
-    filter.addAction(IWXDebugProxy.ACTION_INSTANCE_RELOAD);
+    filter.addAction(WXSDKInstance.ACTION_DEBUG_INSTANCE_REFRESH);
+    filter.addAction(WXSDKInstance.ACTION_INSTANCE_RELOAD);
 
     registerReceiver(mReceiver, filter);
   }
@@ -532,6 +545,13 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
       unregisterReceiver(mReceiver);
     }
     mReceiver = null;
+  }
+
+  @Override
+  public void onBackPressed() {
+    if (!mInstance.onBackPressed()) {
+      super.onBackPressed();
+    }
   }
 
   private static class NavigatorAdapter implements IActivityNavBarSetter {
@@ -585,8 +605,8 @@ public class WXPageActivity extends WXBaseActivity implements IWXRenderListener,
   public class RefreshBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-      if (IWXDebugProxy.ACTION_INSTANCE_RELOAD.equals(intent.getAction()) ||
-              IWXDebugProxy.ACTION_DEBUG_INSTANCE_REFRESH.equals(intent.getAction())) {
+      if (WXSDKInstance.ACTION_INSTANCE_RELOAD.equals(intent.getAction()) ||
+              WXSDKInstance.ACTION_DEBUG_INSTANCE_REFRESH.equals(intent.getAction())) {
         // String myUrl = intent.getStringExtra("url");
         // Log.e("WXPageActivity", "RefreshBroadcastReceiver reload onReceive ACTION_DEBUG_INSTANCE_REFRESH mBundleUrl:" + myUrl + " mUri:" + mUri);
 

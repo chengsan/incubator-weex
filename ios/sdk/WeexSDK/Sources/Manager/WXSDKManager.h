@@ -26,6 +26,10 @@
 @interface WXSDKManager : NSObject
 
 /**
+ *@abstract Returns sdk manager
+ */
++ (WXSDKManager *)sharedInstance;
+/**
  * @abstract Returns bridge manager
  **/
 + (WXBridgeManager *)bridgeMgr;

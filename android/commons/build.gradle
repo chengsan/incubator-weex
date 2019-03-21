@@ -1,7 +1,11 @@
+plugins {
+    id "com.github.hierynomus.license" version "0.14.0"
+}
 
 apply plugin: 'com.android.library'
 
 android {
+
     compileSdkVersion project.compileSdkVersion
     buildToolsVersion project.buildToolsVersion
     resourcePrefix "weexcomm"
@@ -27,14 +31,21 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+
+        debug {
+            jniDebuggable true
+            debuggable true
+
+        }
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':weex_sdk')
     compile "com.android.support:support-v4:${project.supportLibVersion}"
     compile "com.android.support:appcompat-v7:${project.supportLibVersion}"
-    compile project(':weex_sdk')
+    // compile project(':weex_sdk')
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.facebook.fresco:fresco:0.10.0'
     compile 'com.taobao.android.weex_inspection:protocol:1.1.4.1'
@@ -56,4 +67,11 @@ dependencies {
     testCompile 'org.powermock:powermock-module-junit4-legacy:1.6.4'
     testCompile 'org.powermock:powermock-module-testng:1.6.4'
     testCompile 'org.robolectric:robolectric:3.0-rc3'
+}
+
+if(file('../license/LICENSE').exists()){
+    license {
+        header = file('../license/LICENSE')
+    }
+    preBuild.dependsOn licenseFormat
 }

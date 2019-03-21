@@ -61,7 +61,9 @@ public class WXModalUIModule extends WXSDKEngine.DestroyableModule {
 
   @JSMethod(uiThread = true)
   public void toast(JSONObject jsObj) {
-
+    if(mWXSDKInstance.getContext() == null){
+      return;
+    }
     String message = "";
     int duration = Toast.LENGTH_SHORT;
     if (jsObj != null) {
@@ -258,7 +260,6 @@ public class WXModalUIModule extends WXSDKEngine.DestroyableModule {
   @Override
   public void destroy() {
     if (activeDialog != null && activeDialog.isShowing()) {
-      WXLogUtils.w("Dismiss the active dialog");
       activeDialog.dismiss();
     }
   }
