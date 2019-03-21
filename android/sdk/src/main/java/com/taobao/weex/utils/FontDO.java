@@ -21,12 +21,12 @@ package com.taobao.weex.utils;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.text.TextUtils;
-
-import com.alibaba.fastjson.util.Base64;
+import android.util.Base64;
 import com.taobao.weex.WXEnvironment;
 import com.taobao.weex.WXSDKInstance;
 import com.taobao.weex.adapter.URIAdapter;
 import com.taobao.weex.common.Constants;
+import java.io.File;
 
 public class FontDO {
   private final String mFontFamilyName;
@@ -67,13 +67,23 @@ public class FontDO {
 
   private void parseSrc(String src, WXSDKInstance instance) {
     src = (src != null )? src.trim() : "";
+
+    if (instance != null) {
+      if (instance.getCustomFontNetworkHandler() != null) {
+        String localUrl = instance.getCustomFontNetworkHandler().fetchLocal(src);
+        if (!TextUtils.isEmpty(localUrl)) {
+          src = localUrl;
+        }
+      }
+    }
+
     if (src.isEmpty()) {
       mState = STATE_INVALID;
       WXLogUtils.e("TypefaceUtil", "font src is empty.");
       return;
     }
 
-    if (src.matches("^url\\('.*'\\)$")) {
+    if (src.matches("^url\\((('.*')|(\".*\"))\\)$")) {
       String url = src.substring(5, src.length() - 2);
       Uri uri = Uri.parse(url);
       if( instance != null){
@@ -87,7 +97,12 @@ public class FontDO {
           mType = TYPE_NETWORK;
         } else if (Constants.Scheme.FILE.equals(scheme)) {
           mType = TYPE_FILE;
-          mUrl = uri.getPath();
+            /**
+             * eg: file://name/A/B.ttf
+             * getPath() = "A/B.ttf",but the real absolute path is "/name/A/B.ttf"
+             * so use getEncodedSchemeSpecificPart() to replaced = "//name/A/B.ttf"
+             */
+            mUrl = uri.getEncodedSchemeSpecificPart();
         } else if (Constants.Scheme.LOCAL.equals(scheme)){
           mType = TYPE_LOCAL;
         } else if (Constants.Scheme.DATA.equals(scheme)) {
@@ -100,9 +115,17 @@ public class FontDO {
               String base64Data = data[1];
               if (!TextUtils.isEmpty(base64Data)) {
                 String md5 = WXFileUtils.md5(base64Data);
-                String filePath = WXEnvironment.getApplication().getCacheDir() + "/font-family/" + md5;
-                WXFileUtils.saveFile(filePath, Base64.decodeFast(base64Data), WXEnvironment.getApplication());
-                mUrl = filePath;
+                File cacheDir = new File(WXEnvironment.getApplication().getCacheDir(),
+                    "font-family");
+                if (!cacheDir.exists()) {
+                  cacheDir.mkdirs();
+                }
+                File tmpFile = new File(cacheDir, md5);
+                if(!tmpFile.exists()){
+                  tmpFile.createNewFile();
+                  WXFileUtils.saveFile(tmpFile.getPath(), Base64.decode(base64Data, Base64.DEFAULT), WXEnvironment.getApplication());
+                }
+                mUrl = tmpFile.getPath();
                 mType = TYPE_BASE64;
                 WXLogUtils.d("TypefaceUtil", "Parse base64 font cost " + (System.currentTimeMillis() - start) + " ms");
               }
@@ -115,7 +138,7 @@ public class FontDO {
         mState = STATE_INIT;
       } catch (Exception e) {
         mType = STATE_INVALID;
-        WXLogUtils.e("TypefaceUtil", "URI.create(mUrl) failed mUrl: " + mUrl);
+        WXLogUtils.e("TypefaceUtil", "URI.create(mUrl) failed mUrl: " + mUrl+ "\n"+ WXLogUtils.getStackTrace(e));
       }
     } else {
       mUrl = src;

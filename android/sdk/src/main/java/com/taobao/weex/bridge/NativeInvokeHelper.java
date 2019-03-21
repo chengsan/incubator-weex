@@ -18,10 +18,17 @@
  */
 package com.taobao.weex.bridge;
 
+import android.util.Log;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+
+import com.taobao.weex.WXSDKInstance;
 import com.taobao.weex.WXSDKManager;
+import com.taobao.weex.common.WXModule;
+import com.taobao.weex.performance.WXAnalyzerDataTransfer;
+import com.taobao.weex.utils.WXLogUtils;
 import com.taobao.weex.utils.WXReflectionUtils;
 
 import java.lang.reflect.Type;
@@ -30,25 +37,48 @@ import java.lang.reflect.Type;
  * Created by sospartan on 10/11/2016.
  */
 
-public final class NativeInvokeHelper {
+public class NativeInvokeHelper {
   private String mInstanceId;
 
   public NativeInvokeHelper(String instanceId){
-      mInstanceId = instanceId;
+    mInstanceId = instanceId;
   }
 
   public Object invoke(final Object target,final Invoker invoker,JSONArray args) throws Exception {
     final Object[] params = prepareArguments(
-        invoker.getParameterTypes(),
-        args);
+            invoker.getParameterTypes(),
+            args);
+
+    if (WXAnalyzerDataTransfer.isInteractionLogOpen() && invoker instanceof MethodInvoker) {
+      for (int i = 0; i < params.length; i++) {
+        if (params[i] instanceof SimpleJSCallback) {
+          final String callBackId = ((SimpleJSCallback)params[i]).getCallbackId();
+          Log.d(WXAnalyzerDataTransfer.INTERACTION_TAG, "[client][callNativeModuleStart]," + mInstanceId + "," + ((MethodInvoker) invoker).mMethod.getDeclaringClass() + "," + ((MethodInvoker) invoker).mMethod.getName() + "," + callBackId);
+          ((SimpleJSCallback) params[i]).setInvokerCallback(new SimpleJSCallback.InvokerCallback() {
+            @Override
+            public void onInvokeSuccess() {
+              Log.d(WXAnalyzerDataTransfer.INTERACTION_TAG, "[client][callNativeModuleEnd]," + mInstanceId + "," + ((MethodInvoker) invoker).mMethod.getDeclaringClass() + "," + ((MethodInvoker) invoker).mMethod.getName() + "," + callBackId);
+            }
+          });
+          break;
+        }
+      }
+    }
+
     if (invoker.isRunOnUIThread()) {
       WXSDKManager.getInstance().postOnUiThread(new Runnable() {
         @Override
         public void run() {
-          try {
-            invoker.invoke(target, params);
-          } catch (Exception e) {
-            throw new RuntimeException(target + "Invoker " + invoker.toString() ,e);
+          if (invoker != null) {
+            try {
+              WXSDKInstance targetInstance = WXSDKManager.getInstance().getSDKInstance(mInstanceId);
+              if (null == targetInstance || targetInstance.isDestroy()){
+                return;
+              }
+              invoker.invoke(target, params);
+            } catch (Exception e) {
+              WXLogUtils.e("NativeInvokeHelper",target + " Invoker " + invoker.toString()+" exception:"+e);
+            }
           }
         }
       }, 0);
@@ -58,7 +88,7 @@ public final class NativeInvokeHelper {
     return null;
   }
 
-  private Object[] prepareArguments(Type[] paramClazzs, JSONArray args) throws Exception {
+  protected Object[] prepareArguments(Type[] paramClazzs, JSONArray args) throws Exception {
     Object[] params = new Object[paramClazzs.length];
     Object value;
     Type paramClazz;

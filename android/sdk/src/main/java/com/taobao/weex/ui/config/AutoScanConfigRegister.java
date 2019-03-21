@@ -26,10 +26,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.taobao.weex.WXEnvironment;
 import com.taobao.weex.WXSDKEngine;
+import com.taobao.weex.WXSDKManager;
+import com.taobao.weex.bridge.JavascriptInvokable;
 import com.taobao.weex.utils.WXFileUtils;
 import com.taobao.weex.utils.WXLogUtils;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by furture on 2018/2/7.
@@ -37,6 +40,7 @@ import java.io.IOException;
 
 public class AutoScanConfigRegister {
 
+    private static long scanDelay = 0;
 
     public static final  String TAG  = "WeexScanConfigRegister";
 
@@ -45,6 +49,30 @@ public class AutoScanConfigRegister {
      * auto scan config files and do auto config from files, none need center register
      * */
     public static void doScanConfig(){
+        if(scanDelay > 0){
+            WXSDKManager.getInstance().getWXRenderManager().postOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    doScanConfigAsync();
+                }
+            }, scanDelay);
+        }else{
+            doScanConfigAsync();
+        }
+    }
+
+    public static void doScanConfigAsync(){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                doScanConfigSync();
+            }
+        });
+        thread.setName("AutoScanConfigRegister");
+        thread.start();
+    }
+
+    private static void doScanConfigSync(){
         if(WXEnvironment.sApplication == null){
             return;
         }
@@ -99,7 +127,7 @@ public class AutoScanConfigRegister {
                                 WXSDKEngine.registerComponent(configComponentHolder, configComponentHolder.isAppendTree(), configComponentHolder.getType());
                             }
                         }
-                    }catch (Exception e){
+                    }catch (Throwable e){
                         WXLogUtils.e(TAG, e);
                     }
                 }
@@ -109,4 +137,7 @@ public class AutoScanConfigRegister {
         }
     }
 
+    public static void setScanDelay(long scanDelay) {
+        AutoScanConfigRegister.scanDelay = scanDelay;
+    }
 }

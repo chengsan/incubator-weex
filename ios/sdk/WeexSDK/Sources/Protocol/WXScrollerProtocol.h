@@ -55,6 +55,7 @@
 
 - (CGPoint)contentOffset;
 
+- (void)setContentOffset:(CGPoint)contentOffset;
 - (void)setContentOffset:(CGPoint)contentOffset animated:(BOOL)animated;
 
 - (CGSize)contentSize;
@@ -71,6 +72,15 @@
 - (void)removeScrollDelegate:(id<UIScrollViewDelegate>)delegate;
 
 - (WXScrollDirection)scrollDirection;
+
+@optional
+
+- (NSString*)refreshType;
+- (BOOL)requestGestureShouldStopPropagation:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch;
+/**
+ * @abstract adjust for RTL
+ */
+- (void)adjustForRTL;
 
 @end
 

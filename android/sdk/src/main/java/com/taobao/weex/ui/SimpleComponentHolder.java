@@ -26,11 +26,13 @@ import com.taobao.weex.annotation.JSMethod;
 import com.taobao.weex.bridge.Invoker;
 import com.taobao.weex.bridge.MethodInvoker;
 import com.taobao.weex.annotation.Component;
+import com.taobao.weex.common.WXErrorCode;
 import com.taobao.weex.common.WXRuntimeException;
-import com.taobao.weex.dom.WXDomObject;
+import com.taobao.weex.ui.action.BasicComponentData;
 import com.taobao.weex.ui.component.WXComponent;
 import com.taobao.weex.ui.component.WXComponentProp;
 import com.taobao.weex.ui.component.WXVContainer;
+import com.taobao.weex.utils.WXExceptionUtils;
 import com.taobao.weex.utils.WXLogUtils;
 
 import java.lang.annotation.Annotation;
@@ -40,6 +42,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static com.taobao.weex.bridge.WXBridgeManager.METHOD_REGISTER_COMPONENTS;
 
 /**
  * Created by sospartan on 6/12/16.
@@ -60,20 +64,20 @@ public class SimpleComponentHolder implements IFComponentHolder{
       mCompClz = c;
     }
 
-    private void loadConstructor(){
+    private void loadConstructor() {
       Class<? extends WXComponent> c = mCompClz;
       Constructor<? extends WXComponent> constructor;
       try {
-        constructor = c.getConstructor(WXSDKInstance.class, WXDomObject.class, WXVContainer.class);
+        constructor = c.getConstructor(WXSDKInstance.class, WXVContainer.class, BasicComponentData.class);
       } catch (NoSuchMethodException e) {
-        WXLogUtils.d("ClazzComponentCreator","Use deprecated component constructor");
+        WXLogUtils.d("ClazzComponentCreator", "Use deprecated component constructor");
         try {
           //compatible deprecated constructor with 4 args
-          constructor = c.getConstructor(WXSDKInstance.class, WXDomObject.class, WXVContainer.class, boolean.class);
+          constructor = c.getConstructor(WXSDKInstance.class, WXVContainer.class, boolean.class, BasicComponentData.class);
         } catch (NoSuchMethodException e1) {
           try {
             //compatible deprecated constructor with 5 args
-            constructor = c.getConstructor(WXSDKInstance.class, WXDomObject.class, WXVContainer.class,String.class, boolean.class);
+            constructor = c.getConstructor(WXSDKInstance.class, WXVContainer.class, String.class, boolean.class, BasicComponentData.class);
           } catch (NoSuchMethodException e2) {
             throw new WXRuntimeException("Can't find constructor of component.");
           }
@@ -83,7 +87,7 @@ public class SimpleComponentHolder implements IFComponentHolder{
     }
 
     @Override
-    public WXComponent createInstance(WXSDKInstance instance, WXDomObject node, WXVContainer parent) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    public WXComponent createInstance(WXSDKInstance instance, WXVContainer parent, BasicComponentData basicComponentData) throws IllegalAccessException, InvocationTargetException, InstantiationException {
       if(mConstructor == null){
         loadConstructor();
       }
@@ -91,12 +95,12 @@ public class SimpleComponentHolder implements IFComponentHolder{
       WXComponent component;
 
       if(parameters == 3){
-        component =  mConstructor.newInstance(instance,node,parent);
+        component =  mConstructor.newInstance(instance,parent, basicComponentData);
       }else if(parameters == 4){
-        component =  mConstructor.newInstance(instance,node,parent,false);
+        component =  mConstructor.newInstance(instance,parent,false, basicComponentData);
       }else{
         //compatible deprecated constructor
-        component =  mConstructor.newInstance(instance,node,parent,instance.getInstanceId(),parent.isLazy());
+        component =  mConstructor.newInstance(instance,parent,instance.getInstanceId(),parent.isLazy());
       }
       return component;
     }
@@ -172,6 +176,8 @@ public class SimpleComponentHolder implements IFComponentHolder{
     }catch (IndexOutOfBoundsException e){
       e.printStackTrace();
       //ignore: getMethods may throw this
+    }catch (Exception e){ // in meizhu mobile, throw class not found exception in getMethods
+      WXLogUtils.e(TAG, e);
     }
     return new Pair<>(methods,mInvokers);
   }
@@ -179,8 +185,8 @@ public class SimpleComponentHolder implements IFComponentHolder{
 
 
   @Override
-  public synchronized WXComponent createInstance(WXSDKInstance instance, WXDomObject node, WXVContainer parent) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-    WXComponent component = mCreator.createInstance(instance,node,parent);
+  public synchronized WXComponent createInstance(WXSDKInstance instance, WXVContainer parent, BasicComponentData basicComponentData) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    WXComponent component = mCreator.createInstance(instance, parent, basicComponentData);
 
     component.bindHolder(this);
     return component;
@@ -204,12 +210,26 @@ public class SimpleComponentHolder implements IFComponentHolder{
   }
 
   @Override
-  public String[] getMethods() {
+  public synchronized String[] getMethods() {
     if(mMethodInvokers == null){
       generate();
     }
     Set<String> keys = mMethodInvokers.keySet();
-    return keys.toArray(new String[keys.size()]);
+    try {
+      return keys.toArray(new String[keys.size()]);
+    } catch (Throwable throwable) {
+      if(mClz != null) {
+        String name = mClz.getName();
+        String errorMsg = name + ": gen methods failed";
+        WXExceptionUtils.commitCriticalExceptionRT(null,
+                WXErrorCode.WX_KEY_EXCEPTION_INVOKE_REGISTER_COMPONENT,
+                METHOD_REGISTER_COMPONENTS, errorMsg,
+                null);
+      }
+
+      return new String[1];
+    }
+
   }
 
 }

@@ -58,7 +58,9 @@ public class TypefaceUtil {
       for (Map.Entry<String, Typeface> font : fonts.entrySet()) {
         FontDO fontDO = new FontDO(font.getKey(), font.getValue());
         putFontDO(fontDO);
-        WXLogUtils.d("TypefaceUtil", "register new typeface: " + font.getKey());
+        if (WXEnvironment.isApkDebugable()){
+          WXLogUtils.d("TypefaceUtil", "register new typeface: " + font.getKey());
+        }
       }
     }
   }
@@ -68,7 +70,6 @@ public class TypefaceUtil {
   }
 
   public static void removeFontDO(String fontFamilyName) {
-    WXLogUtils.d(TAG, fontFamilyName + " has removed");
     sCacheMap.remove(fontFamilyName);
   }
 
@@ -83,12 +84,12 @@ public class TypefaceUtil {
 
     int want = 0;
     if ((weight == Typeface.BOLD)
-      || ((oldStyle & Typeface.BOLD) != 0 && weight == WXStyle.UNSET)) {
+            || ((oldStyle & Typeface.BOLD) != 0 && weight == WXStyle.UNSET)) {
       want |= Typeface.BOLD;
     }
 
     if ((style == Typeface.ITALIC)
-      || ((oldStyle & Typeface.ITALIC) != 0 && style == WXStyle.UNSET)) {
+            || ((oldStyle & Typeface.ITALIC) != 0 && style == WXStyle.UNSET)) {
       want |= Typeface.ITALIC;
     }
 
